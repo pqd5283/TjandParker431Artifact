@@ -20,27 +20,100 @@ def dbClose():
     connection.close()
     print("Closed")
 
-
 def signplayer():
     dbConnect()
     # Create a cursor object
     cursor = connection.cursor()
 
     #userInput
-    valid = False
-    while not valid:
+    valid = True
+    while valid:
         fname = input("What is the players First Name?\n")
         lname = input("What is the players Last Name?\n")
-        num = input("What is the players Last Name?\n")
-        cursor.execute("SELECT * FROM currentplayer WHERE number =",num)
+        num = input("What is the players Number?\n")
+        cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
         temp = cursor.fetchall()
-    # Execute a query
-    cursor.execute("SELECT * FROM currentplayer")
-    records = cursor.fetchall()
-    print("Data retrieved from currentplayer table:")
-    for record in records:
-        print(record)
+        
+        #checking the number is not already in use
+        checknum = False
+        while temp != "[]":
+            num = input("That Number is already in use. Please Enter a different number\n")
+            cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
+            temp = cursor.fetchall()
+       
+        #TODO logic to find lowest playerID not in use
+        #for now:
+        PlayerID = 25
 
+        #add to player Table
+        cursor.execute(f"INSERT INTO Player Values ({PlayerID},{fname},{lname});")
+
+        #TODO: input validation for this
+        #Checking position
+        position = input("What position is this player:\n "
+                         "(qb) QuarterBack\n"
+                         "(rb) RunningBack\n"
+                         "(wr) Wide reciever\n"
+                         "(def) Defensive Player\n")
+
+        if position == 'qb':
+            depth = input("what is this Quarterback's depth?")
+            comp = input("How many completions does this quaterback have?")
+            passyards = input("How many passing yards does this quaterback have?")
+            QBR = input("How many Interceptions does this quaterback have?")
+            td = input("How many Touchdowns does this quaterback have?")
+
+            #TODO: put this is a try catch
+            cursor.execute(f"INSERT INTO QB Values ({PlayerID},{depth},{comp},{passyards},{QBR},{td});")
+
+        elif position == 'rb':
+            depth = input("what is this RunningBack's depth?")
+            ypc = input("How many Yards per Carry does this RunningBack have?")
+            ra = input("How many rushing attempts does this RunningBack have?")
+            td = input("How many Touchdowns does this RunningBack have?")
+
+            #TODO: put this is a try catch
+            cursor.execute(f"INSERT INTO RB Values ({PlayerID},{depth},{ypc},{ra},{td});")
+
+        elif position == 'wr':
+            depth = input("what is this Wide Reciever's depth?")
+            recy = input("How many recieving Yards does this Wide Reciever have?")
+            targ = input("How many rushing targets does this Wide Reciever have?")
+            ypcch = input("How many yards per catch does this Wide Reciever have?")
+            td = input("How many Touchdowns does this Wide Reciever have?")
+
+            #TODO: put this is a try catch
+            cursor.execute(f"INSERT INTO WR Values ({PlayerID},{depth},{recy},{targ},{ypcch},{td});")
+
+        elif position == 'def':
+            depth = input("what is this Wide Reciever's depth?")
+            pos = input("What is this players position?")
+            tack = input("How many tackles does this Player have?")
+            sack = input("How many Sacks does this Player have?")
+            ints = input("How many interceptions does this Player have?")
+            fumb = input("How many Fumbles does this Player have?")
+
+            #TODO: put this is a try catch
+            cursor.execute(f"INSERT INTO Defense Values ({PlayerID},{depth},{pos},{tack},{sack},{ints},{fumb});")
+
+        #TODO logic to find lowest contractID not in use
+        #for now:
+        contractID = 25
+
+        #TODO: make this current date with datetime stuff
+        startdate = 12/4/2024
+
+        enddate = input("when does this player's contract end?")
+        sal = input("what is this player's salary")
+        cursor.execute(f"INSERT INTO contract Values ({contractID},{startdate},{enddate},{sal},player);")
+
+        cursor.execute(f"SELECT * from coach")
+        temp = cursor.fetchall()
+        print(temp)
+        coach = input("which coach will be this player's coach?")
+        
+        cursor.execute(f"INSERT INTO currentPlayer Values ({PlayerID},{contractID},{coach},{num});")2
+        
     cursor.close()
 
     connection.close()
