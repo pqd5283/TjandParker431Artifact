@@ -211,8 +211,6 @@ def firecoach():
     cursor.close()
 
     # Close the connection
-    connection.close()
-    print("Closed")
     dbClose()
 
 
@@ -221,11 +219,20 @@ def viewrosterstats(position):
     # Create a cursor object
     cursor = connection.cursor()
 
-    # Execute a query
+    if position == "1":
+        pos = "qb"
+    elif position == "2":
+        pos = "rb"
+    elif position == "3":
+        pos = "wr"
+    elif position == "4":
+        pos = "defense"
 
-    cursor.execute("SELECT * FROM currentplayer")
+    cursor.execute(
+        f'SELECT * FROM player JOIN currentplayer ON player.playerID = currentplayer.PlayerID JOIN {pos} ON currentplayer.PlayerID = {pos}.PlayerID')
+    # Execute a query
     records = cursor.fetchall()
-    print("Data retrieved from currentplayer table:")
+    print("Stats retrieved:")
     for record in records:
         print(record)
 
@@ -233,8 +240,6 @@ def viewrosterstats(position):
     cursor.close()
 
     # Close the connection
-    connection.close()
-    print("Closed")
     dbClose()
 
 
