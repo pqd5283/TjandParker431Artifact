@@ -26,6 +26,14 @@ def signplayer():
     # Create a cursor object
     cursor = connection.cursor()
 
+    #userInput
+    valid = False
+    while not valid:
+        fname = input("What is the players First Name?\n")
+        lname = input("What is the players Last Name?\n")
+        num = input("What is the players Last Name?\n")
+        cursor.execute("SELECT * FROM currentplayer WHERE number =",num)
+        temp = cursor.fetchall()
     # Execute a query
     cursor.execute("SELECT * FROM currentplayer")
     records = cursor.fetchall()
