@@ -209,13 +209,35 @@ def proposetrade():
     # Create a cursor object
     cursor = connection.cursor()
 
-    # Execute a query
-    cursor.execute("SELECT * FROM currentplayer")
-    records = cursor.fetchall()
-    print("Data retrieved from currentplayer table:")
-    for record in records:
-        print(record)
 
+    fname = input("Trade target first name:\n")
+    lname = input("Trade target last name:\n")
+    curretTeam = input("Trade target's current team:\n")
+
+
+    validtrade = None
+    while validtrade is None:
+            try:
+                whotradefname = input("Who do you want to trade first name:\n")
+                whotradelname = input("Who do you want to trade last name:\n")
+                cursor.execute(f'SELECT playerID FROM player WHERE Fname = "{whotradefname}" and Lname = "{whotradelname}"')
+                whotradeid = cursor.fetchone()
+                whotradeid = whotradeid[0]
+                validtrade = True
+            except:
+                print("Invalid input, try again\n")
+    additionalOffers = input("Any additional offers:\n")
+    status = "Pending"
+    newPlayerID = generate_unique_id
+    tradeID = generate_unique_id
+
+    # Execute a query
+    cursor.execute(f'INSERT INTO Player({newPlayerID}, "{fname}", "{lname}")')
+    cursor.commit()
+    cursor.execute(f'INSERT INTO TradeTarget({newPlayerID}, "{fname}", "{lname}", "{curretTeam}")')
+    cursor.commit()
+    cursor.execute(f'INSERT INTO TradeProposal({tradeID}, {whotradeid}, {newPlayerID}, "{status}", "{additionalOffers}")')
+    cursor.commit()
     # Close the cursor
     cursor.close()
 
