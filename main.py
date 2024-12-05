@@ -38,24 +38,23 @@ def signplayer():
         
         #checking the number is not already in use
         checknum = False
-        while temp != "[]":
+        while temp != []:
             num = input("That Number is already in use. Please Enter a different number\n")
             cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
             temp = cursor.fetchall()
-       
-        #TODO logic to find lowest playerID not in use
-        #for now:
-        PlayerID = 25
+            print(f"temp:{temp}")
+
+        playerID = generate_unique_id()
 
         #add to player Table
-        cursor.execute(f"INSERT INTO Player Values ({PlayerID},{fname},{lname});")
-
+        cursor.execute(f'INSERT INTO player Values ({playerID},"{fname}","{lname}");')
+        connection.commit()
         #TODO: input validation for this
         #Checking position
         position = input("What position is this player:\n "
                          "(qb) QuarterBack\n"
                          "(rb) RunningBack\n"
-                         "(wr) Wide reciever\n"
+                         "(wr) Wide receiver\n"
                          "(def) Defensive Player\n")
 
         if position == 'qb':
@@ -65,17 +64,24 @@ def signplayer():
             QBR = input("How many Interceptions does this quaterback have?")
             td = input("How many Touchdowns does this quaterback have?")
 
-            #TODO: put this is a try catch
-            cursor.execute(f"INSERT INTO QB Values ({PlayerID},{depth},{comp},{passyards},{QBR},{td});")
+            #calculating completion percentage
+            perc = ((int)(comp))/((int)(passyards))
 
+            #TODO: put this is a try catch
+            cursor.execute(f"INSERT INTO QB Values ({playerID},{depth},{perc},{passyards},{QBR},{td});")
+            connection.commit()
         elif position == 'rb':
             depth = input("what is this RunningBack's depth?")
-            ypc = input("How many Yards per Carry does this RunningBack have?")
+            yards = input("How many rushing Yards does this RunningBack have?")
             ra = input("How many rushing attempts does this RunningBack have?")
             td = input("How many Touchdowns does this RunningBack have?")
 
+            #calulate yards per carry
+            ypc = (int(yards))/(int(ra))
+
             #TODO: put this is a try catch
-            cursor.execute(f"INSERT INTO RB Values ({PlayerID},{depth},{ypc},{ra},{td});")
+            cursor.execute(f"INSERT INTO RB Values ({playerID},{depth},{ypc},{yards},{ra},{td});")
+            connection.commit()
 
         elif position == 'wr':
             depth = input("what is this Wide Reciever's depth?")
@@ -85,37 +91,41 @@ def signplayer():
             td = input("How many Touchdowns does this Wide Reciever have?")
 
             #TODO: put this is a try catch
-            cursor.execute(f"INSERT INTO WR Values ({PlayerID},{depth},{recy},{targ},{ypcch},{td});")
+            cursor.execute(f"INSERT INTO WR Values ({playerID},{depth},{recy},{targ},{ypcch},{td});")
+            connection.commit()
 
         elif position == 'def':
-            depth = input("what is this Wide Reciever's depth?")
             pos = input("What is this players position?")
+            depth = input("what is this player's depth?")
             tack = input("How many tackles does this Player have?")
             sack = input("How many Sacks does this Player have?")
             ints = input("How many interceptions does this Player have?")
             fumb = input("How many Fumbles does this Player have?")
 
             #TODO: put this is a try catch
-            cursor.execute(f"INSERT INTO Defense Values ({PlayerID},{depth},{pos},{tack},{sack},{ints},{fumb});")
+            cursor.execute(f"INSERT INTO Defense Values ({playerID},{depth},'{pos}',{tack},{sack},{ints},{fumb});")
+            connection.commit()
 
-        #TODO logic to find lowest contractID not in use
-        #for now:
-        contractID = 25
+        contractID = generate_unique_id()
 
-        #TODO: make this current date with datetime stuff
-        startdate = 12/4/2024
+        startdate = currentdate()
 
-        enddate = input("when does this player's contract end?")
+        end = None
+        while end is None:
+            end = enddate()
+
         sal = input("what is this player's salary")
-        cursor.execute(f"INSERT INTO contract Values ({contractID},{startdate},{enddate},{sal},player);")
+        print(f"startdate: {startdate}\n EndDate: {end}")
+        cursor.execute(f'INSERT INTO contract Values ({contractID},"{startdate}","{end}",{sal},"player");')
 
         cursor.execute(f"SELECT * from coach")
         temp = cursor.fetchall()
         print(temp)
         coach = input("which coach will be this player's coach?")
         
-        cursor.execute(f"INSERT INTO currentPlayer Values ({PlayerID},{contractID},{coach},{num});")
-        
+        cursor.execute(f"INSERT INTO currentPlayer Values ({playerID},{contractID},{coach},{num});")
+        connection.commit()
+        valid = False
     cursor.close()
 
     connection.close()
@@ -211,14 +221,7 @@ def accepttrade():
     dbConnect()
     # Create a cursor object
     cursor = connection.cursor()
-
     # Execute a query
-    cursor.execute("SELECT * FROM currentplayer")
-    records = cursor.fetchall()
-    print("Data retrieved from currentplayer table:")
-    for record in records:
-        print(record)
-
     # Close the cursor
     cursor.close()
 
@@ -337,7 +340,7 @@ def generate_unique_id():
     #generates a unique interger id that is 5 characters
     return int(uuid.uuid4().int % 1e5)
 
-def currentdate(): 
+def currentdate():
     now = datetime.datetime.now()
     formatted_date = now.strftime("%Y-%m-%d")
     return formatted_date
@@ -349,7 +352,7 @@ def enddate():
         return enddate
     except ValueError:
         print("Invalid date format. Please use YYYY-MM-DD.")
-        return None 
+        return None
 
 if __name__ == '__main__':
     userQuit = False
