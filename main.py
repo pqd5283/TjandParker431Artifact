@@ -305,21 +305,22 @@ def proposetrade():
                 cursor.execute(f'SELECT playerID FROM player WHERE Fname = "{whotradefname}" and Lname = "{whotradelname}"')
                 whotradeid = cursor.fetchone()
                 whotradeid = whotradeid[0]
+                print(whotradeid)
                 validtrade = True
             except:
                 print("Invalid input, try again\n")
     additionalOffers = input("Any additional offers:\n")
     status = "Pending"
-    newPlayerID = generate_unique_id
-    tradeID = generate_unique_id
-
+    newPlayerID = generate_unique_id()
+    tradeID = generate_unique_id()
+    print(newPlayerID)
     # Execute a query
-    cursor.execute(f'INSERT INTO Player({newPlayerID}, "{fname}", "{lname}")')
-    cursor.commit()
-    cursor.execute(f'INSERT INTO TradeTarget({newPlayerID}, "{fname}", "{lname}", "{curretTeam}")')
-    cursor.commit()
-    cursor.execute(f'INSERT INTO TradeProposal({tradeID}, {whotradeid}, {newPlayerID}, "{status}", "{additionalOffers}")')
-    cursor.commit()
+    cursor.execute(f'INSERT INTO Player values({newPlayerID}, "{fname}", "{lname}")')
+    connection.commit()
+    cursor.execute(f'INSERT INTO TradeTarget values({newPlayerID}, "{fname}", "{lname}", "{curretTeam}")')
+    connection.commit()
+    cursor.execute(f'INSERT INTO TradeProposal values({tradeID}, {whotradeid}, {newPlayerID}, "{status}", "{additionalOffers}")')
+    connection.commit()
     # Close the cursor
     cursor.close()
 
@@ -347,6 +348,27 @@ def removetrade():
     dbConnect()
     # Create a cursor object
     cursor = connection.cursor()
+
+    validtrade = None
+    while validtrade is None:
+            try:
+                whotradefname = input("Who do you want to remove from trade first name:\n")
+                whotradelname = input("Who do you want to remove from trade last name:\n")
+                cursor.execute(f'SELECT playerID FROM player WHERE Fname = "{whotradefname}" and Lname = "{whotradelname}"')
+                whotradeid = cursor.fetchone()
+                whotradeid = whotradeid[0]
+                print(whotradeid)
+                cursor.execute(f'SELECT tradeID FROM tradeproposal WHERE NewPlayer = {whotradeid} AND Status = "Pending"')
+                thetradeid = cursor.fetchone()
+                thetradeid = thetradeid[0]
+                print(thetradeid)
+                cursor.execute(f'DELETE FROM tradeproposal WHERE tradeID = {thetradeid}')
+                connection.commit()
+                validtrade = True
+            except:
+                print("Invalid input, try again\n")
+
+
 
     # Execute a query
     cursor.execute("SELECT * FROM currentplayer")
