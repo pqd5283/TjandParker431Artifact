@@ -140,11 +140,25 @@ def releaseplayer():
     cursor = connection.cursor()
 
     # Get info needed to delete player from all tables
-    num = input("what number is the player you want to release?")
-    cursor.execute(f"Select PlayerID From CurrentPlayer Where Number = {num}")
-    pID = cursor.fetchall()
+    num = int(input("what number is the player you want to release?"))
+    cursor.execute(f"Select PlayerID,ContractID From CurrentPlayer Where Number = {num}")
+    temp = cursor.fetchall()
+    pID = temp[0][0]
+    conID = temp[0][1]
+    print(pID)
+    print("\n")
+    print(conID)
 
-    cursor.execute(f"Delete From Player Where PlayerID = {pID}")
+    cursor.execute(f"Delete From contract Where ContractID = {conID}")
+
+
+    cursor.execute(f"Delete From qb Where PlayerID = {pID}")
+    cursor.execute(f"Delete From rb Where PlayerID = {pID}")
+    cursor.execute(f"Delete From wr Where PlayerID = {pID}")
+    cursor.execute(f"Delete From defense Where PlayerID = {pID}")
+
+    connection.commit()
+
     # cursor.execute(f"Select contractID From CurrentPlayer Where Number = {num}")
     # conID = cursor.fetchall()
 
@@ -266,25 +280,26 @@ def signcoach():
     fname = input("First name of coach who you want to hire:\n")
     lname = input("Last name of coach who you want to hire:\n")
     title = input("What is the coaches title\n")
-    salary = input("What is the coaches salary\n")
+    salary = float(input("What is the coaches salary\n"))
     salary = "{:10.2f}".format(salary)
 
     contractenddate = None
     while contractenddate is None:
         contractenddate = enddate()
-
+    startdate = currentdate()
     coachID = generate_unique_id()
     contractID = generate_unique_id()
-    
+    cursor = connection.cursor()
+
     isheadcoach = None
-    while isheadcoach != "Y" or isheadcoach != "N":
+    while isheadcoach != "Y" and isheadcoach != "N":
         isheadcoach = input("Is the coach a headcoach (Y/N):")
     
     supervisorid = None
     if isheadcoach == "Y":
         pass
     else:
-        cursor.execute("SELECT * FROM coaches")
+        cursor.execute("SELECT * FROM coach")
         records = cursor.fetchall()
         print("Coach list:")
         for record in records:
@@ -293,18 +308,17 @@ def signcoach():
             try:
                 supervisorfname = input("First name of coaches supervisor")
                 supervisorlname = input("Last name of coaches supervisor")
-                cursor.execute(f'SELECT coachID FROM coachs WHERE Fname = "{supervisorfname}" and Lname = "{supervisorlname}"')
+                cursor.execute(f'SELECT coachID FROM coach WHERE Fname = "{supervisorfname}" and Lname = "{supervisorlname}"')
                 supervisorid = cursor.fetchone()
                 supervisorid = supervisorid[0]
             except:
                 print("Invalid input, try again\n")
             
-    cursor = connection.cursor()
 
 
-    cursor.execute(f'INSERT INTO contract values ({contractID}, "{currentdate}", "{contractenddate}", {salary}, "Coach")')
+    cursor.execute(f'INSERT INTO contract values ({contractID}, "{startdate}", "{contractenddate}", {salary}, "Coach")')
     connection.commit()
-    cursor.execute(f'INSERT INTO coach values ({coachID}, "{fname}", "{lname}", "{supervisorid}", "{title}", {contractID})')
+    cursor.execute(f'INSERT INTO coach values ({coachID},"{fname}","{lname}","{supervisorid}","{title}",{contractID})')
     connection.commit()
 
     # Close the cursor
@@ -319,22 +333,25 @@ def signcoach():
 def firecoach():
     dbConnect()
     # Create a cursor object
-    fname = input("First name of coach who you want to fire:\n")
-    lname = input("Last name of coach who you want to fire:\n")
 
     cursor = connection.cursor()
 
     # Execute a query
-
-    cursor.execute(f'SELECT ContractID FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
-    contractIDDelete = cursor.fetchone()
-    contractIDDelete = contractIDDelete[0]
-    print(contractIDDelete)
-    cursor.execute(f'DELETE FROM contract where contract.ID = {contractIDDelete}')
-    connection.commit()
-    cursor.execute(f'DELETE FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
-    connection.commit()
-    # Close the cursor
+    isvalidquery = None
+    while isvalidquery is None:
+        try:
+            fname = input("First name of coach who you want to fire:\n")
+            lname = input("Last name of coach who you want to fire:\n")
+            cursor.execute(f'SELECT ContractID FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
+            contractIDDelete = cursor.fetchone()
+            contractIDDelete = contractIDDelete[0]
+            print(contractIDDelete)
+            cursor.execute(f'DELETE FROM contract where contract.ContractID = {contractIDDelete}')
+            connection.commit()
+            isvalidquery = True
+        except:
+            print("Invalid coach, please try again")
+            # Close the cursor
     cursor.close()
 
     # Close the connection
