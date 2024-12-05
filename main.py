@@ -320,7 +320,7 @@ def firecoach():
     contractIDDelete = contractIDDelete[0]
     print(contractIDDelete)
     cursor.execute(f'DELETE FROM contract where contract.ID = {contractIDDelete}')
-    connection.commmit()
+    connection.commit()
     cursor.execute(f'DELETE FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
     connection.commit()
     # Close the cursor
