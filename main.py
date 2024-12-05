@@ -1,4 +1,6 @@
 import mysql.connector
+import uuid
+import datetime
 
 
 # pip install mysql-connector-python
@@ -112,7 +114,7 @@ def signplayer():
         print(temp)
         coach = input("which coach will be this player's coach?")
         
-        cursor.execute(f"INSERT INTO currentPlayer Values ({PlayerID},{contractID},{coach},{num});")2
+        cursor.execute(f"INSERT INTO currentPlayer Values ({PlayerID},{contractID},{coach},{num});")
         
     cursor.close()
 
@@ -250,14 +252,24 @@ def removetrade():
 def signcoach():
     dbConnect()
     # Create a cursor object
+    fname = input("First name of coach who you want to hire:\n")
+    lname = input("Last name of coach who you want to hire:\n")
+
+
+    coachID = generate_unique_id()
+    contractID = generate_unique_id()
+
     cursor = connection.cursor()
 
     # Execute a query
-    cursor.execute("SELECT * FROM currentplayer")
-    records = cursor.fetchall()
-    print("Data retrieved from currentplayer table:")
-    for record in records:
-        print(record)
+
+    cursor.execute(f'SELECT ContractID FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
+    contractIDDelete = cursor.fetchone()
+    contractIDDelete = contractIDDelete[0]
+    print(contractIDDelete)
+    cursor.execute(f'DELETE FROM contract where contract.ID = {contractIDDelete}')
+    cursor.execute(f'DELETE FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
+
 
     # Close the cursor
     cursor.close()
@@ -271,15 +283,21 @@ def signcoach():
 def firecoach():
     dbConnect()
     # Create a cursor object
+    fname = input("First name of coach who you want to fire:\n")
+    lname = input("Last name of coach who you want to fire:\n")
+
     cursor = connection.cursor()
 
     # Execute a query
-    cursor.execute("SELECT * FROM currentplayer")
-    records = cursor.fetchall()
-    print("Data retrieved from currentplayer table:")
-    for record in records:
-        print(record)
 
+    cursor.execute(f'SELECT ContractID FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
+    contractIDDelete = cursor.fetchone()
+    contractIDDelete = contractIDDelete[0]
+    print(contractIDDelete)
+    cursor.execute(f'DELETE FROM contract where contract.ID = {contractIDDelete}')
+    connection.commmit()
+    cursor.execute(f'DELETE FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
+    connection.commit()
     # Close the cursor
     cursor.close()
 
@@ -315,6 +333,23 @@ def viewrosterstats(position):
     # Close the connection
     dbClose()
 
+def generate_unique_id():
+    #generates a unique interger id that is 5 characters
+    return int(uuid.uuid4().int % 1e5)
+
+def currentdate(): 
+    now = datetime.datetime.now()
+    formatted_date = now.strftime("%Y-%m-%d")
+    return formatted_date
+
+def enddate():
+    enddate = input("Which date does the contract end (YYYY-MM-DD):\n")
+    try:
+        datetime.datetime.strptime(enddate, "%Y-%m-%d")
+        return enddate
+    except ValueError:
+        print("Invalid date format. Please use YYYY-MM-DD.")
+        return None 
 
 if __name__ == '__main__':
     userQuit = False
