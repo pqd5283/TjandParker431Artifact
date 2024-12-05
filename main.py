@@ -254,22 +254,47 @@ def signcoach():
     # Create a cursor object
     fname = input("First name of coach who you want to hire:\n")
     lname = input("Last name of coach who you want to hire:\n")
+    title = input("What is the coaches title\n")
+    salary = input("What is the coaches salary\n")
+    salary = "{:10.2f}".format(salary)
 
+    contractenddate = None
+    while contractenddate is None:
+        contractenddate = enddate()
 
     coachID = generate_unique_id()
     contractID = generate_unique_id()
-
+    
+    isheadcoach = None
+    while isheadcoach != "Y" or isheadcoach != "N":
+        isheadcoach = input("Is the coach a headcoach (Y/N):")
+    
+    supervisorid = None
+    if isheadcoach == "Y":
+        pass
+    else:
+        cursor.execute("SELECT * FROM coaches")
+        records = cursor.fetchall()
+        print("Coach list:")
+        for record in records:
+            print(record)
+        while supervisorid is None:
+            try:
+                supervisorfname = input("First name of coaches supervisor")
+                supervisorlname = input("Last name of coaches supervisor")
+                cursor.execute(f'SELECT coachID FROM coachs WHERE Fname = "{supervisorfname}" and Lname = "{supervisorlname}"')
+                supervisorid = cursor.fetchone()
+                supervisorid = supervisorid[0]
+            except:
+                print("Invalid input, try again\n")
+            
     cursor = connection.cursor()
 
-    # Execute a query
 
-    cursor.execute(f'SELECT ContractID FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
-    contractIDDelete = cursor.fetchone()
-    contractIDDelete = contractIDDelete[0]
-    print(contractIDDelete)
-    cursor.execute(f'DELETE FROM contract where contract.ID = {contractIDDelete}')
-    cursor.execute(f'DELETE FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
-
+    cursor.execute(f'INSERT INTO contract values ({contractID}, "{currentdate}", "{contractenddate}", {salary}, "Coach")')
+    connection.commit()
+    cursor.execute(f'INSERT INTO coach values ({coachID}, "{fname}", "{lname}", "{supervisorid}", "{title}", {contractID})')
+    connection.commit()
 
     # Close the cursor
     cursor.close()
