@@ -125,6 +125,7 @@ def signplayer():
         
         cursor.execute(f"INSERT INTO currentPlayer Values ({playerID},{contractID},{coach},{num});")
         connection.commit()
+        print("Player added to database!")
         valid = False
     cursor.close()
 
@@ -138,12 +139,19 @@ def releaseplayer():
     # Create a cursor object
     cursor = connection.cursor()
 
-    # Execute a query
-    cursor.execute("SELECT * FROM currentplayer")
-    records = cursor.fetchall()
-    print("Data retrieved from currentplayer table:")
-    for record in records:
-        print(record)
+    # Get info needed to delete player from all tables
+    num = input("what number is the player you want to release?")
+    cursor.execute(f"Select PlayerID From CurrentPlayer Where Number = {num}")
+    pID = cursor.fetchall()
+
+    cursor.execute(f"Delete From Player Where PlayerID = {pID}")
+    # cursor.execute(f"Select contractID From CurrentPlayer Where Number = {num}")
+    # conID = cursor.fetchall()
+
+    # cursor.execute(f"Remove From currentPlayer = {num}")
+
+
+    
 
     # Close the cursor
     cursor.close()
