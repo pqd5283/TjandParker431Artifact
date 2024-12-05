@@ -201,7 +201,7 @@ def updateplayer():
     if temp != []:
         position = 'rb'
 
-    cursor.execute(f"select * from def where PlayerID = {pID}")
+    cursor.execute(f"select * from defense where PlayerID = {pID}")
     temp = cursor.fetchall() 
     if temp != []:
         position = 'def'      
@@ -215,9 +215,13 @@ def updateplayer():
 
         #calculating completion percentage
         perc = ((int)(comp))/((int)(passyards))
+        if perc == 1:
+            perc = .99
 
         #TODO: put this is a try catch
-        cursor.execute(f"INSERT INTO QB Values ({playerID},{depth},{perc},{passyards},{QBR},{td});")
+        cursor.execute(f"DELETE FROM QB where PlayerID = {pID}")
+        connection.commit()
+        cursor.execute(f"INSERT INTO QB Values ({pID},{depth},{perc},{passyards},{QBR},{td});")
         connection.commit()
     elif position == 'rb':
         depth = input("what is this RunningBack's depth?")
@@ -229,7 +233,9 @@ def updateplayer():
         ypc = (int(yards))/(int(ra))
 
         #TODO: put this is a try catch
-        cursor.execute(f"INSERT INTO RB Values ({playerID},{depth},{ypc},{yards},{ra},{td});")
+        cursor.execute(f"DELETE FROM RB where PlayerID = {pID}")
+        connection.commit()
+        cursor.execute(f"INSERT INTO RB Values ({pID},{depth},{ypc},{yards},{ra},{td});")
         connection.commit()
 
     elif position == 'wr':
@@ -240,6 +246,8 @@ def updateplayer():
         td = input("How many Touchdowns does this Wide Reciever have?")
 
         #TODO: put this is a try catch
+        cursor.execute(f"DELETE FROM WR where PlayerID = {pID}")
+        connection.commit()
         cursor.execute(f"INSERT INTO WR Values ({playerID},{depth},{recy},{targ},{ypcch},{td});")
         connection.commit()
 
@@ -252,6 +260,8 @@ def updateplayer():
         fumb = input("How many Fumbles does this Player have?")
 
         #TODO: put this is a try catch
+        cursor.execute(f"DELETE FROM Defense where PlayerID = {pID}")
+        connection.commit()
         cursor.execute(f"INSERT INTO Defense Values ({playerID},{depth},'{pos}',{tack},{sack},{ints},{fumb});")
         connection.commit()
 
