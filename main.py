@@ -23,116 +23,118 @@ def dbClose():
     print("Closed")
 
 def signplayer():
-    dbConnect()
-    # Create a cursor object
-    cursor = connection.cursor()
+    try:
+        dbConnect()
+        # Create a cursor object
+        cursor = connection.cursor()
 
-    #userInput
-    valid = True
-    while valid:
-        fname = input("What is the players First Name?\n")
-        lname = input("What is the players Last Name?\n")
-        num = input("What is the players Number?\n")
-        cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
-        temp = cursor.fetchall()
-        
-        #checking the number is not already in use
-        checknum = False
-        while temp != []:
-            num = input("That Number is already in use. Please Enter a different number\n")
+        #userInput
+        valid = True
+        while valid:
+            fname = input("What is the players First Name?\n")
+            lname = input("What is the players Last Name?\n")
+            num = input("What is the players Number?\n")
             cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
             temp = cursor.fetchall()
-            print(f"temp:{temp}")
+            
+            #checking the number is not already in use
+            checknum = False
+            while temp != []:
+                num = input("That Number is already in use. Please Enter a different number\n")
+                cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
+                temp = cursor.fetchall()
+                print(f"temp:{temp}")
 
-        playerID = generate_unique_id()
+            playerID = generate_unique_id()
 
-        #add to player Table
-        cursor.execute(f'INSERT INTO player Values ({playerID},"{fname}","{lname}");')
-        connection.commit()
-        #TODO: input validation for this
-        #Checking position
-        position = input("What position is this player:\n "
-                         "(qb) QuarterBack\n"
-                         "(rb) RunningBack\n"
-                         "(wr) Wide receiver\n"
-                         "(def) Defensive Player\n")
-
-        if position == 'qb':
-            depth = input("what is this Quarterback's depth?")
-            comp = input("How many completions does this quaterback have?")
-            passyards = input("How many passing yards does this quaterback have?")
-            QBR = input("How many Interceptions does this quaterback have?")
-            td = input("How many Touchdowns does this quaterback have?")
-
-            #calculating completion percentage
-            perc = ((int)(comp))/((int)(passyards))
-
-            #TODO: put this is a try catch
-            cursor.execute(f"INSERT INTO QB Values ({playerID},{depth},{perc},{passyards},{QBR},{td});")
+            #add to player Table
+            cursor.execute(f'INSERT INTO player Values ({playerID},"{fname}","{lname}");')
             connection.commit()
-        elif position == 'rb':
-            depth = input("what is this RunningBack's depth?")
-            yards = input("How many rushing Yards does this RunningBack have?")
-            ra = input("How many rushing attempts does this RunningBack have?")
-            td = input("How many Touchdowns does this RunningBack have?")
+            #TODO: input validation for this
+            #Checking position
+            position = input("What position is this player:\n "
+                            "(qb) QuarterBack\n"
+                            "(rb) RunningBack\n"
+                            "(wr) Wide receiver\n"
+                            "(def) Defensive Player\n")
 
-            #calulate yards per carry
-            ypc = (int(yards))/(int(ra))
+            if position == 'qb':
+                depth = input("what is this Quarterback's depth?")
+                comp = input("How many completions does this quaterback have?")
+                passyards = input("How many passing yards does this quaterback have?")
+                QBR = input("How many Interceptions does this quaterback have?")
+                td = input("How many Touchdowns does this quaterback have?")
 
-            #TODO: put this is a try catch
-            cursor.execute(f"INSERT INTO RB Values ({playerID},{depth},{ypc},{yards},{ra},{td});")
+                #calculating completion percentage
+                perc = ((int)(comp))/((int)(passyards))
+
+                #TODO: put this is a try catch
+                cursor.execute(f"INSERT INTO QB Values ({playerID},{depth},{perc},{passyards},{QBR},{td});")
+                connection.commit()
+            elif position == 'rb':
+                depth = input("what is this RunningBack's depth?")
+                yards = input("How many rushing Yards does this RunningBack have?")
+                ra = input("How many rushing attempts does this RunningBack have?")
+                td = input("How many Touchdowns does this RunningBack have?")
+
+                #calulate yards per carry
+                ypc = (int(yards))/(int(ra))
+
+                #TODO: put this is a try catch
+                cursor.execute(f"INSERT INTO RB Values ({playerID},{depth},{ypc},{yards},{ra},{td});")
+                connection.commit()
+
+            elif position == 'wr':
+                depth = input("what is this Wide Reciever's depth?")
+                recy = input("How many recieving Yards does this Wide Reciever have?")
+                targ = input("How many rushing targets does this Wide Reciever have?")
+                ypcch = input("How many yards per catch does this Wide Reciever have?")
+                td = input("How many Touchdowns does this Wide Reciever have?")
+
+                #TODO: put this is a try catch
+                cursor.execute(f"INSERT INTO WR Values ({playerID},{depth},{recy},{targ},{ypcch},{td});")
+                connection.commit()
+
+            elif position == 'def':
+                pos = input("What is this players position?")
+                depth = input("what is this player's depth?")
+                tack = input("How many tackles does this Player have?")
+                sack = input("How many Sacks does this Player have?")
+                ints = input("How many interceptions does this Player have?")
+                fumb = input("How many Fumbles does this Player have?")
+
+                #TODO: put this is a try catch
+                cursor.execute(f"INSERT INTO Defense Values ({playerID},{depth},'{pos}',{tack},{sack},{ints},{fumb});")
+                connection.commit()
+
+            contractID = generate_unique_id()
+
+            startdate = currentdate()
+
+            end = None
+            while end is None:
+                end = enddate()
+
+            sal = input("what is this player's salary")
+            print(f"startdate: {startdate}\n EndDate: {end}")
+            cursor.execute(f'INSERT INTO contract Values ({contractID},"{startdate}","{end}",{sal},"player");')
+
+            cursor.execute(f"SELECT * from coach")
+            temp = cursor.fetchall()
+            print(temp)
+            coach = input("which coach will be this player's coach?")
+            
+            cursor.execute(f"INSERT INTO currentPlayer Values ({playerID},{contractID},{coach},{num});")
             connection.commit()
+            print("Player added to database!")
+            valid = False
+        cursor.close()
 
-        elif position == 'wr':
-            depth = input("what is this Wide Reciever's depth?")
-            recy = input("How many recieving Yards does this Wide Reciever have?")
-            targ = input("How many rushing targets does this Wide Reciever have?")
-            ypcch = input("How many yards per catch does this Wide Reciever have?")
-            td = input("How many Touchdowns does this Wide Reciever have?")
-
-            #TODO: put this is a try catch
-            cursor.execute(f"INSERT INTO WR Values ({playerID},{depth},{recy},{targ},{ypcch},{td});")
-            connection.commit()
-
-        elif position == 'def':
-            pos = input("What is this players position?")
-            depth = input("what is this player's depth?")
-            tack = input("How many tackles does this Player have?")
-            sack = input("How many Sacks does this Player have?")
-            ints = input("How many interceptions does this Player have?")
-            fumb = input("How many Fumbles does this Player have?")
-
-            #TODO: put this is a try catch
-            cursor.execute(f"INSERT INTO Defense Values ({playerID},{depth},'{pos}',{tack},{sack},{ints},{fumb});")
-            connection.commit()
-
-        contractID = generate_unique_id()
-
-        startdate = currentdate()
-
-        end = None
-        while end is None:
-            end = enddate()
-
-        sal = input("what is this player's salary")
-        print(f"startdate: {startdate}\n EndDate: {end}")
-        cursor.execute(f'INSERT INTO contract Values ({contractID},"{startdate}","{end}",{sal},"player");')
-
-        cursor.execute(f"SELECT * from coach")
-        temp = cursor.fetchall()
-        print(temp)
-        coach = input("which coach will be this player's coach?")
-        
-        cursor.execute(f"INSERT INTO currentPlayer Values ({playerID},{contractID},{coach},{num});")
-        connection.commit()
-        print("Player added to database!")
-        valid = False
-    cursor.close()
-
-    connection.close()
-    print("Closed")
-    dbClose()
-
+        connection.close()
+        print("Closed")
+        dbClose()
+    except Exception as e: 
+        print("An error occured")
 
 def releaseplayer():
     dbConnect()
