@@ -335,13 +335,13 @@ def proposetrade():
                 cursor.execute(f'SELECT playerID FROM player WHERE Fname = "{whotradefname}" and Lname = "{whotradelname}"')
                 whotradeid = cursor.fetchone()
                 whotradeid = whotradeid[0]
-                print(whotradeid)
+                #print(whotradeid)
                 validtrade = True
                 additionalOffers = input("Any additional offers:\n")
                 status = "Pending"
                 newPlayerID = generate_unique_id()
                 tradeID = generate_unique_id()
-                print(newPlayerID)
+                #print(newPlayerID)
                 # Execute a query
                 cursor.execute(f'INSERT INTO Player values({newPlayerID}, "{fname}", "{lname}")')
                 connection.commit()
@@ -403,18 +403,18 @@ def accepttrade():
                 coachid = cursor.fetchone()
                 coachid = coachid[0]
 
-                print(coachid)
+                #print(coachid)
 
 
                 cursor.execute(f'DELETE FROM contract where contractid = {removedcontractid}')
                 connection.commit()
 
-                print('2')
+               # print('2')
                 cursor.execute(f'INSERT INTO contract values({contractid}, "{contractstart}", "{contractend}", "{salary}", "Player")')
                 connection.commit()
 
 
-                print('3')
+               # print('3')
                 cursor.execute(f'INSERT INTO currentplayer values({whotradeid}, {contractid}, {coachid}, {number})')
                 connection.commit()
 
@@ -445,11 +445,11 @@ def removetrade():
                 cursor.execute(f'SELECT playerID FROM player WHERE Fname = "{whotradefname}" and Lname = "{whotradelname}"')
                 whotradeid = cursor.fetchone()
                 whotradeid = whotradeid[0]
-                print(whotradeid)
+                #print(whotradeid)
                 cursor.execute(f'SELECT tradeID FROM tradeproposal WHERE NewPlayer = {whotradeid} AND Status = "Pending"')
                 thetradeid = cursor.fetchone()
                 thetradeid = thetradeid[0]
-                print(thetradeid)
+                #print(thetradeid)
                 cursor.execute(f'DELETE FROM tradeproposal WHERE tradeID = {thetradeid}')
                 connection.commit()
                 cursor.execute(f'DELETE FROM player where playerid = {whotradeid}')
@@ -531,7 +531,7 @@ def firecoach():
             cursor.execute(f'SELECT ContractID FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
             contractIDDelete = cursor.fetchone()
             contractIDDelete = contractIDDelete[0]
-            print(contractIDDelete)
+            #print(contractIDDelete)
             cursor.execute(f'DELETE FROM contract where contract.ContractID = {contractIDDelete}')
             connection.commit()
             isvalidquery = True
