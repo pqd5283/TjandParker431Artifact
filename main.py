@@ -9,13 +9,13 @@ def dbConnect():
     try:
         global connection
         connection = mysql.connector.connect(
-            host='127.0.0.1',
-            user='root',
-            password='TjandParker',
-            database='footballmanager2')
+            host=f"{hostname}",
+            user=f'{username}',
+            password=f'{password}',
+            database=f'{databasename}')
         #print("Connected")
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        print("Connection failed")
 
 
 def dbClose():
@@ -590,8 +590,26 @@ def enddate():
         print("Invalid date format. Please use YYYY-MM-DD.")
         return None
 
+def login():
+    loggedin = None
+    while loggedin is None:
+        try:
+            global hostname 
+            global username
+            global password
+            global databasename
+            hostname = input("What is the hostname\n")
+            username = input("what is the username\n")
+            password = input("What is the password\n")
+            databasename = input("What is the database schema name\n")
+            dbConnect()
+            loggedin = True
+        except:
+            pass
+
 if __name__ == '__main__':
     userQuit = False
+    login()
     while not userQuit:
 
         selection = input(
