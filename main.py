@@ -276,16 +276,34 @@ def updateplayer():
 
 
 def resignplayer():
-    dbConnect()
-    # Create a cursor object
-    cursor = connection.cursor()
+    try:
+        dbConnect()
+        # Create a cursor object
+        cursor = connection.cursor()
+        cursor.execute("START TRANSATION")
 
-    # Execute a query
-    cursor.execute("SELECT * FROM currentplayer")
-    records = cursor.fetchall()
-    print("Data retrieved from currentplayer table:")
-    for record in records:
-        print(record)
+        num = input("what is the number of the player you want to resign?")
+
+        cursor.execute(f"Select PlayerID FROM CurrentPlayer where PlayerID = {pID}")
+        temp = cursor.fetchall()
+        pID = temp[0][0]
+
+        cursor.execute(f"Select contractID FROM CurrentPlayer where PlayerID = {pID}")
+        temp = cursor.fetchall()
+        contractID = temp[0][0]
+
+        newEndDate = input("What is the new end date of this player?")
+        newSalary = input("what is the new salary for this player?")
+
+        cursor.execute(f"UPDATE contract where ContractID = {contractID} set endDate = {newEndDate}, salary = {newSalary}")
+
+    except Exception as e:
+        connection.rollback()
+        print("an error occured during resign process transaction rolled back")
+
+    
+    
+            
 
     # Close the cursor
     cursor.close()
