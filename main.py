@@ -281,11 +281,7 @@ def resignplayer():
     cursor = connection.cursor()
 
     # Execute a query
-    cursor.execute("SELECT * FROM currentplayer")
-    records = cursor.fetchall()
-    print("Data retrieved from currentplayer table:")
-    for record in records:
-        print(record)
+
 
     # Close the cursor
     cursor.close()
@@ -374,18 +370,11 @@ def removetrade():
                 print(thetradeid)
                 cursor.execute(f'DELETE FROM tradeproposal WHERE tradeID = {thetradeid}')
                 connection.commit()
+                cursor.execute(f'DELETE FROM player where playerid = {whotradeid}')
+                connection.commit()
                 validtrade = True
             except:
                 print("Invalid input, try again\n")
-
-
-
-    # Execute a query
-    cursor.execute("SELECT * FROM currentplayer")
-    records = cursor.fetchall()
-    print("Data retrieved from currentplayer table:")
-    for record in records:
-        print(record)
 
     # Close the cursor
     cursor.close()
