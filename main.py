@@ -13,9 +13,9 @@ def dbConnect():
             user=f'{username}',
             password=f'{password}',
             database=f'{databasename}')
-        #print("Connected")
     except mysql.connector.Error as err:
         print("Connection failed")
+        return 0
 
 
 def dbClose():
@@ -602,7 +602,8 @@ def login():
             username = input("what is the username\n")
             password = input("What is the password\n")
             databasename = input("What is the database schema name\n")
-            dbConnect()
+            if dbConnect() == 0:
+                raise Exception
             loggedin = True
         except:
             pass
