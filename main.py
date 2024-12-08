@@ -248,7 +248,7 @@ def updateplayer():
         #TODO: put this is a try catch
         cursor.execute(f"DELETE FROM WR where PlayerID = {pID}")
         connection.commit()
-        cursor.execute(f"INSERT INTO WR Values ({playerID},{depth},{recy},{targ},{ypcch},{td});")
+        cursor.execute(f"INSERT INTO WR Values ({pID},{depth},{recy},{targ},{ypcch},{td});")
         connection.commit()
 
     elif position == 'def':
@@ -262,7 +262,7 @@ def updateplayer():
         #TODO: put this is a try catch
         cursor.execute(f"DELETE FROM Defense where PlayerID = {pID}")
         connection.commit()
-        cursor.execute(f"INSERT INTO Defense Values ({playerID},{depth},'{pos}',{tack},{sack},{ints},{fumb});")
+        cursor.execute(f"INSERT INTO Defense Values ({pID},{depth},'{pos}',{tack},{sack},{ints},{fumb});")
         connection.commit()
 
 
@@ -313,23 +313,23 @@ def proposetrade():
                 whotradeid = whotradeid[0]
                 print(whotradeid)
                 validtrade = True
+                additionalOffers = input("Any additional offers:\n")
+                status = "Pending"
+                newPlayerID = generate_unique_id()
+                tradeID = generate_unique_id()
+                print(newPlayerID)
+                # Execute a query
+                cursor.execute(f'INSERT INTO Player values({newPlayerID}, "{fname}", "{lname}")')
+                connection.commit()
+                cursor.execute(f'INSERT INTO TradeTarget values({newPlayerID}, "{fname}", "{lname}", "{curretTeam}")')
+                connection.commit()
+                cursor.execute(
+                    f'INSERT INTO TradeProposal values({tradeID}, {whotradeid}, {newPlayerID}, "{status}", "{additionalOffers}")')
+                connection.commit()
+                # Close the cursor
+                cursor.close()
             except:
                 print("Invalid input, try again\n")
-    additionalOffers = input("Any additional offers:\n")
-    status = "Pending"
-    newPlayerID = generate_unique_id()
-    tradeID = generate_unique_id()
-    print(newPlayerID)
-    # Execute a query
-    cursor.execute(f'INSERT INTO Player values({newPlayerID}, "{fname}", "{lname}")')
-    connection.commit()
-    cursor.execute(f'INSERT INTO TradeTarget values({newPlayerID}, "{fname}", "{lname}", "{curretTeam}")')
-    connection.commit()
-    cursor.execute(f'INSERT INTO TradeProposal values({tradeID}, {whotradeid}, {newPlayerID}, "{status}", "{additionalOffers}")')
-    connection.commit()
-    # Close the cursor
-    cursor.close()
-
     # Close the connection
     connection.close()
     print("Closed")
@@ -340,8 +340,63 @@ def accepttrade():
     dbConnect()
     # Create a cursor object
     cursor = connection.cursor()
-    # Execute a query
-    # Close the cursor
+    validtrade = None
+    while validtrade is None:
+            try:
+                whotradefname = input("Who do you want to accept from trade first name:\n")
+                whotradelname = input("Who do you want to accept from trade last name:\n")
+                cursor.execute(f'SELECT playerID FROM player WHERE Fname = "{whotradefname}" and Lname = "{whotradelname}"')
+                whotradeid = cursor.fetchone()
+                whotradeid = whotradeid[0]
+                print(whotradeid)
+                cursor.execute(f'SELECT tradeID FROM tradeproposal WHERE NewPlayer = {whotradeid} AND Status = "Pending"')
+                thetradeid = cursor.fetchone()
+                thetradeid = thetradeid[0]
+                print(thetradeid)
+                cursor.execute(f'UPDATE TradeProposal SET Status = "Accepted" WHERE TradeID = {thetradeid}')
+                connection.commit()
+                print("Accepted")
+                cursor.execute(f'SELECT oldplayer from tradeproposal where TradeID = {thetradeid}')
+                removetradedplayer = cursor.fetchone()
+                removetradedplayer = removetradedplayer[0]
+                print("oldplayer fetched")
+                cursor.execute(f'SELECT contractid from currentplayer where playerid = {removetradedplayer}')
+                removedcontractid = cursor.fetchone()
+                removedcontractid = removedcontractid[0]
+                cursor.execute(f'REMOVE FROM contract where contractid = {removedcontractid}')
+                connection.commit()
+
+
+                salary = float(input("What is the players salary\n"))
+                salary = "{:10.2f}".format(salary)
+                contractend = enddate()
+                contractstart = currentdate()
+                contractid = generate_unique_id()
+                cursor.execute(f'INSERT INTO contract values({contractid}, "{contractstart}", "{contractend}", "{salary}", "Player")')
+                cursor.commit()
+                position = input("What position is the traded player (qb, rb, wr, defense):\n")
+                if position != "qb" and position != "rb" and position != "wr" and position != "defense":
+                    raise Exception
+                number = input("What number is the traded player:\n")
+                cursor.execute(f'SELECT * from currentplayer where number = {number}')
+                numcheck = cursor.fetchall()
+                if numcheck != []:
+                    raise Exception
+                coachfname = input("First name of the players coach")
+                coachlname = input("Last name of the players coach")
+                cursor.execute(f'SELECT coachID FROM coach WHERE Fname = "{coachfname}" and Lname = "{coachlname}"')
+                coachid = cursor.fetchone()
+                coachid = coachid[0]
+                cursor.execute(f'INSERT INTO currentplayer values({whotradeid}, {contractid}, {coachid}, {number})')
+                cursor.commit()
+                cursor.execture(f'INSERT into {position} (PlayerID) value {whotradeid}')
+                cursor.commit()
+
+
+                validtrade = True
+            except:
+                print("Invalid input, try again\n")
+
     cursor.close()
 
     # Close the connection
