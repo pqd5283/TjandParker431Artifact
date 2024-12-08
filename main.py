@@ -131,7 +131,7 @@ def signplayer():
         print("An error occured")
 
 def releaseplayer():
-    try: 
+    try:
         dbConnect()
         # Create a cursor object
         cursor = connection.cursor()
@@ -142,7 +142,7 @@ def releaseplayer():
         num = input("What is the players Number?\n")
         cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
         temp = cursor.fetchall()
-        
+
         #checking the number is not already in use
         checknum = False
         while temp == []:
@@ -154,7 +154,7 @@ def releaseplayer():
         temp = cursor.fetchall()
         pID = temp[0][0]
         conID = temp[0][1]
-        
+
 
         cursor.execute(f"Delete From contract Where ContractID = {conID}")
 
@@ -172,7 +172,7 @@ def releaseplayer():
         # cursor.execute(f"Remove From currentPlayer = {num}")
 
 
-        
+
 
         # Close the cursor
         cursor.close()
@@ -185,7 +185,7 @@ def releaseplayer():
         print("an error occured\n ")
 
 def updateplayer():
-    try: 
+    try:
         dbConnect()
         # Create a cursor object
         cursor = connection.cursor()
@@ -195,27 +195,27 @@ def updateplayer():
         cursor.execute(f"Select PlayerID From CurrentPlayer Where Number = {num}")
         temp = cursor.fetchall()
         pID = temp[0][0]
-        
+
         #find the position of the player
         cursor.execute(f"select * from qb where PlayerID = {pID}")
-        temp = cursor.fetchall() 
+        temp = cursor.fetchall()
         if temp != []:
             position = 'qb'
 
         cursor.execute(f"select * from wr where PlayerID = {pID}")
-        temp = cursor.fetchall() 
+        temp = cursor.fetchall()
         if temp != []:
             position = 'wr'
 
         cursor.execute(f"select * from rb where PlayerID = {pID}")
-        temp = cursor.fetchall() 
+        temp = cursor.fetchall()
         if temp != []:
             position = 'rb'
 
         cursor.execute(f"select * from defense where PlayerID = {pID}")
-        temp = cursor.fetchall() 
+        temp = cursor.fetchall()
         if temp != []:
-            position = 'def'      
+            position = 'def'
 
         if position == 'qb':
             depth = input("what is this Quarterback's depth?")
@@ -294,7 +294,7 @@ def resignplayer():
 
         num = input("what is the number of the player you want to resign?")
 
-        cursor.execute(f"Select PlayerID FROM CurrentPlayer where PlayerID = {pID}")
+        cursor.execute(f"Select PlayerID FROM CurrentPlayer where number = {num}")
         temp = cursor.fetchall()
         pID = temp[0][0]
 
@@ -306,7 +306,7 @@ def resignplayer():
         newSalary = input("what is the new salary for this player?")
 
         cursor.execute(f"UPDATE contract where ContractID = {contractID} set endDate = {newEndDate}, salary = {newSalary}")
-
+        connection.commit()
     except Exception as e:
         connection.rollback()
         print("an error occured during resign process transaction rolled back")
@@ -380,23 +380,16 @@ def accepttrade():
                 cursor.execute(f'SELECT playerID FROM player WHERE Fname = "{whotradefname}" and Lname = "{whotradelname}"')
                 whotradeid = cursor.fetchone()
                 whotradeid = whotradeid[0]
-                print(whotradeid)
                 cursor.execute(f'SELECT tradeID FROM tradeproposal WHERE NewPlayer = {whotradeid} AND Status = "Pending"')
                 thetradeid = cursor.fetchone()
                 thetradeid = thetradeid[0]
-                print(thetradeid)
-                cursor.execute(f'UPDATE TradeProposal SET Status = "Accepted" WHERE TradeID = {thetradeid}')
-                connection.commit()
-                print("Accepted")
                 cursor.execute(f'SELECT oldplayer from tradeproposal where TradeID = {thetradeid}')
                 removetradedplayer = cursor.fetchone()
                 removetradedplayer = removetradedplayer[0]
-                print("oldplayer fetched")
                 cursor.execute(f'SELECT contractid from currentplayer where playerid = {removetradedplayer}')
                 removedcontractid = cursor.fetchone()
                 removedcontractid = removedcontractid[0]
-                cursor.execute(f'REMOVE FROM contract where contractid = {removedcontractid}')
-                connection.commit()
+
 
 
                 salary = float(input("What is the players salary\n"))
@@ -404,8 +397,7 @@ def accepttrade():
                 contractend = enddate()
                 contractstart = currentdate()
                 contractid = generate_unique_id()
-                cursor.execute(f'INSERT INTO contract values({contractid}, "{contractstart}", "{contractend}", "{salary}", "Player")')
-                cursor.commit()
+
                 position = input("What position is the traded player (qb, rb, wr, defense):\n")
                 if position != "qb" and position != "rb" and position != "wr" and position != "defense":
                     raise Exception
@@ -419,11 +411,24 @@ def accepttrade():
                 cursor.execute(f'SELECT coachID FROM coach WHERE Fname = "{coachfname}" and Lname = "{coachlname}"')
                 coachid = cursor.fetchone()
                 coachid = coachid[0]
-                cursor.execute(f'INSERT INTO currentplayer values({whotradeid}, {contractid}, {coachid}, {number})')
-                cursor.commit()
-                cursor.execture(f'INSERT into {position} (PlayerID) value {whotradeid}')
-                cursor.commit()
 
+                print(coachid)
+
+
+                cursor.execute(f'DELETE FROM contract where contractid = {removedcontractid}')
+                connection.commit()
+
+                print('2')
+                cursor.execute(f'INSERT INTO contract values({contractid}, "{contractstart}", "{contractend}", "{salary}", "Player")')
+                connection.commit()
+
+
+                print('3')
+                cursor.execute(f'INSERT INTO currentplayer values({whotradeid}, {contractid}, {coachid}, {number})')
+                connection.commit()
+
+                cursor.execute(f'INSERT into {position} (PlayerID) value({whotradeid})')
+                connection.commit()
 
                 validtrade = True
             except:
