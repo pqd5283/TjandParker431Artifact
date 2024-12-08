@@ -27,7 +27,7 @@ def signplayer():
         dbConnect()
         # Create a cursor object
         cursor = connection.cursor()
-
+        cursor.execute('START TRANSACTION')
         #userInput
         valid = True
         while valid:
@@ -38,7 +38,6 @@ def signplayer():
             temp = cursor.fetchall()
             
             #checking the number is not already in use
-            checknum = False
             while temp != []:
                 num = input("That Number is already in use. Please Enter a different number\n")
                 cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
@@ -110,13 +109,13 @@ def signplayer():
                 end = enddate()
 
             sal = input("What is this player's salary\n")
-            print(f"startdate: {startdate}\n EndDate: {end}")
             cursor.execute(f'INSERT INTO contract Values ({contractID},"{startdate}","{end}",{sal},"player");')
 
             fname = input("First name of this Player's coach:\n")
             lname = input("Last name of this Player's coach:\n")
             cursor.execute(f'SELECT CoachID FROM coach where coach.Fname = "{fname}" AND coach.Lname = "{lname}"')
             coach = cursor.fetchall()
+            coach = coach[0][0]
             
             cursor.execute(f"INSERT INTO currentPlayer Values ({playerID},{contractID},{coach},{num});")
             connection.commit()
@@ -126,7 +125,8 @@ def signplayer():
 
         connection.close()
         dbClose()
-    except Exception as e: 
+    except Exception as e:
+        connection.rollback()
         print("An error occured")
 
 def releaseplayer():
@@ -136,8 +136,6 @@ def releaseplayer():
         cursor = connection.cursor()
 
         # Get info needed to delete player from all tables
-        num = int(input("what number is the player you want to release?\n"))
-
         num = input("What is the players Number?\n")
         cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
         temp = cursor.fetchall()
@@ -165,20 +163,13 @@ def releaseplayer():
 
         connection.commit()
 
-        # cursor.execute(f"Select contractID From CurrentPlayer Where Number = {num}")
-        # conID = cursor.fetchall()
-
-        # cursor.execute(f"Remove From currentPlayer = {num}")
-
-
-
-
         # Close the cursor
         cursor.close()
 
         # Close the connection
         connection.close()
         dbClose()
+        print("Player removed from database\n")
     except Exception as e:
         print("an error occured\n ")
 
@@ -289,6 +280,12 @@ def resignplayer():
         cursor.execute("START TRANSACTION")
 
         num = input("what is the number of the player you want to resign?\n")
+        cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
+        temp = cursor.fetchall()
+        while temp == []:
+            num = input("That Number is not in use. Please Enter a different number\n")
+            cursor.execute(f"SELECT * FROM currentplayer WHERE number ={num}")
+            temp = cursor.fetchall()
 
         cursor.execute(f"Select PlayerID FROM CurrentPlayer where number = {num}")
         temp = cursor.fetchall()
@@ -301,11 +298,11 @@ def resignplayer():
         newEndDate = input("What is the new end date of this player?\n")
         newSalary = input("what is the new salary for this player?\n")
 
-        cursor.execute(f"UPDATE contract where ContractID = {contractID} set endDate = {newEndDate}, salary = {newSalary}")
+        cursor.execute(f"UPDATE contract set endTime = '{newEndDate}', salary = {newSalary} where ContractID = {contractID}")
         connection.commit()
     except Exception as e:
         connection.rollback()
-        print("an error occured during resign process transaction rolled back\n")
+        print("an error occurred\n")
 
     
     
@@ -317,7 +314,7 @@ def resignplayer():
     # Close the connection
     connection.close()
     dbClose()
-
+    print("Player Contract Updated!")
 
 def proposetrade():
     dbConnect()
