@@ -63,7 +63,10 @@ def signplayer():
                 td = input("How many Touchdowns does this quaterback have?\n")
 
                 #calculating completion percentage
-                perc = ((int)(comp))/((int)(passyards))
+                if passyards == 0:
+                    perc = 0
+                else:
+                    perc = ((int)(comp))/((int)(passyards))
 
                 cursor.execute(f"INSERT INTO QB Values ({playerID},{depth},{perc},{passyards},{QBR},{td});")
                 connection.commit()
